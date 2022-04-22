@@ -38,12 +38,21 @@ public class DrawScript : MonoBehaviour
     
     private void Update()
     {
-        if (Input.GetKeyUp(KeyCode.Mouse0))
+        if (Input.GetKeyUp(KeyCode.Mouse0) && isDrawing)
             StopDraw();
-        if (Input.GetKeyDown(KeyCode.Mouse0) && EventSystem.current.IsPointerOverGameObject())
+        if (Input.GetKeyDown(KeyCode.Mouse0) && IsPointerOverGameObject())
             StartDraw();
-        if (Input.GetKey(KeyCode.Mouse0) && EventSystem.current.IsPointerOverGameObject())
+        if (Input.GetKey(KeyCode.Mouse0) && IsPointerOverGameObject())
             Move();
+    }
+
+    private bool IsPointerOverGameObject()
+    {
+        if (EventSystem.current.IsPointerOverGameObject())
+            return true;
+        if (Input.touchCount > 0 && EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId))
+            return true;
+        return false;
     }
 
     private void StopDraw()
