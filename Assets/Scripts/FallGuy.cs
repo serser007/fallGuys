@@ -31,46 +31,61 @@ internal class FallGuy: MonoBehaviour
     private void Start()
     {
         if (autoSetup)
-            OnCollisionEnter(null);
+            GainFallGuyIfNot();
     }
 
     private void OnCollisionEnter(Collision collision)
     {
         if (isDead)
             return;
-
-        if (collision != null && collision.transform.CompareTag(CoinTag))
+        switch (collision.transform.tag)
         {
-            collision.collider.enabled = false;
-            collision.transform.GetComponent<Animation>().Play();
+            case CoinTag:
+                CollideWithCoin(collision);
+                break;
+            case ObstacleTag:
+                Die();
+                break;
+            case BombTag:
+                CollideWithBomb(collision);
+                break;
+            case PlayerTag:
+                GainFallGuyIfNot();
+                break;
         }
+    }
 
-        if (collision != null && (collision.transform.CompareTag(ObstacleTag) || collision.transform.CompareTag(BombTag)))
-        {
-            isDead = true;
-            SetMaterial(onDie);
+    private void CollideWithCoin(Collision coinCollision)
+    {
+        coinCollision.collider.enabled = false;
+        coinCollision.transform.GetComponent<Animation>().Play();
+    }
+
+    private void CollideWithBomb(Collision obstacleCollision)
+    {
+        Die();
+        GetComponent<Rigidbody>().AddForce((Vector3.back + Vector3.up) * explosionForce, ForceMode.Impulse);
+        obstacleCollision.transform.GetComponent<ParticleSystem>().Play();
+    }
+
+    private void Die()
+    {
+        isDead = true;
+        SetMaterial(onDie);
                 
-            FallGuysSetup.Instance.Remove(gameObject);
-            particleEffectSystem.Play();
+        FallGuysSetup.Instance.Remove(gameObject);
+        particleEffectSystem.Play();
+    }
 
-            if (collision.transform.CompareTag(BombTag))
-            {
-                GetComponent<Rigidbody>().AddForce((Vector3.back + Vector3.up) * explosionForce, ForceMode.Impulse);
-                collision.transform.GetComponent<ParticleSystem>().Play();
-            }
-            return;
-        }
-
+    private void GainFallGuyIfNot()
+    {
         if (isGained)
             return;
-
-        if (collision is null || collision.transform.CompareTag(PlayerTag))
-        {
-            isGained = true;
-            SetMaterial(onSetup);
-            particleEffectSystem.Play();
-            FallGuysSetup.Instance.Add(gameObject);
-        }
+    
+        isGained = true;
+        SetMaterial(onSetup);
+        particleEffectSystem.Play();
+        FallGuysSetup.Instance.Add(gameObject);
     }
 
     private void SetMaterial(Material mat)
